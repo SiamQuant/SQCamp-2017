@@ -1,0 +1,70 @@
+/*----------	SiamQuant Discovering Alpha ver. 2.0.0.0	----------*/ 
+/*----------    SQRC2017_PE_Rotation	----------*/
+ 
+/*================================================== 
+			Include Files & SQ Report Option
+==================================================*/ 
+ 
+//Include Additional Metrics in Amibroker Report; 
+SQCustombacktester( "C:\\SiamQuant\\SQ Output\\", "SQRC2017_PE_Rotation", 1 ); 
+ 
+/*================================================== 
+			Backtest Settings 
+==================================================*/ 
+ 
+SetOption( "Initialequity", 1000000 );  
+SetOption( "Commissionmode", 1 ); 
+SetOption( "Commissionamount", 0.25 ); 
+SetOption( "Minshares", 100 );
+RoundLotSize = 100; 
+
+/*================================================== 
+			Main Indicators & Formulas 
+==================================================*/ 
+set100 = SQMKT() == 1 OR SQMKT() == 2;
+PE = SQPE();
+Ret = SQEBIT_ROLL() / (SQTA()-SQTCL());
+sellcon1=Cross(EMA(Close, 200),Close);
+firstDayofYear = DayOfYear() < Ref(DayOfYear(),-1);
+lastDayofYear = DayOfYear() > Ref(DayOfYear(), 1);
+/*================================================== 
+			Entry : Triggers & Filters
+==================================================*/ 
+
+Buy = firstDayofYear AND set100;
+
+
+/*================================================== 
+			Exit : Triggers & Filters
+==================================================*/ 
+
+Sell = lastDayofYear or sellcon1; 
+
+/*================================================== 
+			Position Size & Risk Management
+==================================================*/ 
+PctSize=3.3;
+SetPositionSize( PctSize, spsPercentOfEquity);
+ 
+/*================================================== 
+			Position Score 
+==================================================*/ 
+
+PositionScore = IIf( PE>0 , 1/PE , 0 )*Ret;
+
+/*================================================== 
+			Order Execution & Slippage 
+==================================================*/ 
+
+//Trade Delay Option 
+SetTradeDelays( 1, 1, 1, 1 ); 
+
+//Volatility Slippage Model
+BuySlip = 0.25; 
+SellSlip = 0.25;
+BuyPrice = O + ( ( H - O ) * BuySlip ); 
+SellPrice = O + ( ( L - O ) * SellSlip ); 
+
+/*================================================== 
+			END 
+==================================================*/ 

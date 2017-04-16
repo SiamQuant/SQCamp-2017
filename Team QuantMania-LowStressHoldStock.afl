@@ -1,0 +1,59 @@
+
+/*================================================== 
+			Backtest Settings 
+==================================================*/ 
+ 
+SetOption( "Initialequity", 1000000 );  
+SetOption( "Commissionmode", 1 ); 
+SetOption( "Commissionamount", 0.25 ); 
+SetOption( "Minshares", 100 );
+RoundLotSize = 100;
+/*================================================== 
+			Position Size & Risk Management
+==================================================*/ 
+
+PE = SQPE();
+PctSize = 3;
+SetPositionSize( PctSize, spsPercentOfEquity);
+SetTradeDelays(1, 1, 0, 0);
+BuyPrice = SellPrice = Open;
+
+/*================================================== 
+			Position Score 
+==================================================*/ 
+
+PositionScore = IIf( PE>0, 1/PE, 0 );
+
+// Parameter
+
+firstDayofYear = DayOfYear() < Ref(DayOfYear(),-1);
+lastDayofYear = DayOfYear() > Ref(DayOfYear(), 1);
+
+MATest = 200;
+
+//MATest = Optimize("MATest" ,30, 50, 300, 10);
+
+Buycon1 = Close > MA(C, MATest); 
+Buycon2 = Ref(MA(C, MATest), -1) < MA(C, MATest);
+Buycon3 = firstDayofYear;
+
+Sellcon1 = lastDayofYear;
+
+Buy = (Buycon1 AND Buycon2 AND Buycon3);
+//Buy = Buycon3 ;
+Sell = Sellcon1 ;
+
+//ApplyStop
+_SL = 10;
+_TSL = 20; 
+
+if(0){
+	_SL = Optimize("_SL", 10, 6, 30, 2);
+	_TSL = Optimize("_TSL", 20, 6, 30, 2);
+}
+
+ApplyStop(stopTypeLoss, stopModePercent, _SL);
+ApplyStop(stopTypeTrailing, stopModePercent, _TSL);
+
+
+
